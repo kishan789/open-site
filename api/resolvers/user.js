@@ -313,9 +313,9 @@ const Mutation = {
    * @param {string} email
    * @param {string} username
    * @param {string} password
-   * 
+   * @param {string} validationcode
    */
-  signup: async (root, { input: { fullName, email, username, password } }, { User }) => {
+  signup: async (root, { input: { fullName, email, username, password , validationcode} }, { User }) => {
     // Check if user with given email or username already exists
     const user = await User.findOne().or([{ email }, { username }]);
     if (user) {
@@ -324,7 +324,7 @@ const Mutation = {
     }
    
     // Empty field validation
-    if (!fullName || !email || !username || !password ) {
+    if (!fullName || !email || !username || !password || !validationcode) {
       throw new Error('All fields are required.');
     }
 
@@ -362,6 +362,12 @@ const Mutation = {
     if (password.length < 6) {
       throw new Error('Password min 6 characters.');
     }
+    const val_code= await User.findOne().or({validationcode});
+    
+    if(!val_code)
+    {
+      throw new Error('The validation Code is invalid.');
+    }
     const mailbody = {
        to: email,
        subject: 'Successful SignUp',
@@ -375,7 +381,7 @@ const Mutation = {
       email,
       username,
       password,
-      
+      validationcode,
     }).save();
     
     return {
